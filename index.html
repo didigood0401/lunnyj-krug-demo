@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Лунный круг - онлайн-фестиваль (демо)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--night:#0b0d1a;--night2:#131733;--gold:#d9b46a;--gold2:#f1dcae;--txt:#e9e4d8;--mut:#a7a3b8;--line:rgba(217,180,106,.28)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--night);color:var(--txt);font:17px/1.6 Manrope,Arial,sans-serif;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+canvas#sky{position:fixed;inset:0;z-index:0;pointer-events:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+h1,h2,h3{font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;line-height:1.02}
+.ey{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+.btn{display:inline-flex;align-items:center;gap:12px;padding:16px 30px;border-radius:999px;font:700 15px Manrope;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid var(--gold);transition:background .3s,color .3s,transform .2s;background:transparent;color:var(--gold2)}
+.btn:hover{background:var(--gold);color:var(--night)}
+.btn.f{background:var(--gold);color:var(--night)}.btn.f:hover{background:var(--gold2)}
+.btn:active{transform:scale(.97)}
+header{position:fixed;inset:0 0 auto;z-index:20;padding:18px 0;transition:background .4s}
+header.s{background:rgba(11,13,26,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.hd{display:flex;justify-content:space-between;align-items:center}
+.logo{font-family:"Cormorant Garamond";font-size:24px;letter-spacing:.12em;display:flex;align-items:center;gap:10px;white-space:nowrap}
+@media (max-width:520px){.logo{font-size:19px;letter-spacing:.06em}}
+.logo i{width:22px;height:22px;border-radius:50%;box-shadow:inset -6px 0 0 0 var(--gold);display:inline-block}
+header nav{display:flex;gap:28px;font-size:14px;color:var(--mut)}
+header nav a:hover{color:var(--gold2)}
+/* hero */
+.hero{min-height:100vh;display:grid;place-items:center;text-align:center;position:relative;padding:120px 0 80px;overflow:hidden}
+.wheel{position:absolute;left:50%;top:50%;width:min(860px,150vw);aspect-ratio:1;transform:translate(-50%,-50%);opacity:.55;z-index:0}
+.wheel svg{width:100%;height:100%;animation:rot 160s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.moon{width:120px;height:120px;border-radius:50%;margin:0 auto 28px;background:radial-gradient(circle at 38% 35%,#fff7e0,#e9cf96 45%,#b48d4a 100%);box-shadow:0 0 80px rgba(241,220,174,.45),0 0 200px rgba(217,180,106,.2);position:relative;overflow:hidden}
+.moon::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--night);transform:translateX(var(--ph,40%));transition:transform 2.4s cubic-bezier(.2,.8,.2,1)}
+.loaded .moon{--ph:115%}
+.hero h1{font-size:clamp(56px,9vw,128px);letter-spacing:-.01em}
+.hero h1 em{font-style:italic;color:var(--gold2)}
+.hero .sub{max-width:620px;margin:18px auto 30px;color:var(--mut);font-size:19px}
+.hero .date{display:inline-flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:10px 20px;margin-bottom:26px;font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+.hero .date b{color:var(--gold)}
+.cd{display:flex;gap:14px;justify-content:center;margin-top:44px}
+.cd div{min-width:86px;border:1px solid var(--line);border-radius:16px;padding:14px 10px;background:rgba(19,23,51,.55);backdrop-filter:blur(4px)}
+.cd b{display:block;font-family:"Cormorant Garamond";font-size:44px;font-weight:600;color:var(--gold2);line-height:1}
+.cd span{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.rise>*{opacity:0;transform:translateY(24px);transition:opacity 1s,transform 1s cubic-bezier(.2,.8,.2,1)}
+.loaded .rise>*{opacity:1;transform:none}
+.loaded .rise>*:nth-child(2){transition-delay:.15s}.loaded .rise>*:nth-child(3){transition-delay:.3s}.loaded .rise>*:nth-child(4){transition-delay:.45s}.loaded .rise>*:nth-child(5){transition-delay:.6s}.loaded .rise>*:nth-child(6){transition-delay:.75s}
+section{padding:110px 0;position:relative;z-index:1}
+.sh{text-align:center;margin-bottom:54px}
+.sh h2{font-size:clamp(40px,5.4vw,72px);margin-top:12px}
+.sh p{color:var(--mut);max-width:560px;margin:14px auto 0}
+/* program: moon phases */
+.prog{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.day{border:1px solid var(--line);border-radius:22px;padding:28px 24px;background:linear-gradient(180deg,rgba(19,23,51,.8),rgba(11,13,26,.6));transition:transform .4s cubic-bezier(.2,.8,.2,1),border-color .3s}
+.day:hover{transform:translateY(-6px);border-color:var(--gold)}
+.ph{width:46px;height:46px;border-radius:50%;background:var(--gold2);position:relative;overflow:hidden;margin-bottom:18px}
+.ph::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--night2)}
+.d1 .ph::after{transform:translateX(70%)}.d2 .ph::after{transform:translateX(40%)}.d3 .ph::after{transform:translateX(15%)}.d4 .ph::after{display:none}
+.day h3{font-size:30px;margin:6px 0 12px}
+.day ul{list-style:none;display:grid;gap:8px;font-size:15px;color:var(--mut)}
+.day li b{color:var(--txt);font-weight:500}
+/* speakers */
+.spk{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.sp{text-align:center}
+.av{width:150px;height:150px;border-radius:50%;margin:0 auto 16px;border:1px solid var(--line);display:grid;place-items:center;position:relative;background:radial-gradient(circle at 50% 30%,#232a5c,#0f1230)}
+.av::before{content:"";position:absolute;inset:-8px;border-radius:50%;border:1px dashed var(--line);animation:rot 40s linear infinite}
+.av svg{width:64px;height:64px}
+.sp h3{font-size:26px}
+.sp p{color:var(--mut);font-size:14px}
+/* tickets */
+.tix{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch}
+.tk{border:1px solid var(--line);border-radius:24px;padding:34px 28px;display:flex;flex-direction:column;gap:16px;background:rgba(19,23,51,.55)}
+.tk.hot{border-color:var(--gold);background:linear-gradient(180deg,rgba(217,180,106,.14),rgba(19,23,51,.7));transform:translateY(-10px)}
+.tk h3{font-size:34px}
+.tk .pr{font-family:"Cormorant Garamond";font-size:54px;color:var(--gold2);line-height:1}
+.tk .pr s{font-size:24px;color:var(--mut);margin-left:8px}
+.tk ul{list-style:none;display:grid;gap:10px;font-size:15px;color:var(--mut);margin-bottom:auto}
+.tk li::before{content:"✦ ";color:var(--gold)}
+.tk .btn{justify-content:center}
+.tag{align-self:flex-start;font-size:12px;letter-spacing:.2em;text-transform:uppercase;background:var(--gold);color:var(--night);padding:6px 12px;border-radius:999px}
+/* reviews */
+.rev{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.rv-c{border-left:1px solid var(--gold);padding:6px 0 6px 22px}
+.rv-c p{font-family:"Cormorant Garamond";font-size:24px;font-style:italic;line-height:1.3}
+.rv-c span{display:block;margin-top:12px;color:var(--mut);font-size:14px}
+/* faq */
+.faq{max-width:780px;margin:0 auto}
+details{border-bottom:1px solid var(--line);padding:20px 0}
+summary{cursor:pointer;font-size:20px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";color:var(--gold);font-size:26px;line-height:1;transition:transform .3s}
+details[open] summary::after{transform:rotate(45deg)}
+details p{color:var(--mut);margin-top:12px}
+/* form */
+.reg{max-width:640px;margin:0 auto;border:1px solid var(--line);border-radius:28px;padding:44px;background:rgba(19,23,51,.7);text-align:center}
+.reg form{display:grid;gap:12px;margin-top:24px}
+.reg input,.reg select{background:rgba(11,13,26,.7);border:1px solid var(--line);border-radius:14px;padding:15px 18px;color:var(--txt);font:16px Manrope;outline:none;transition:border-color .2s}
+.reg input:focus,.reg select:focus{border-color:var(--gold)}
+.reg .ok{display:none;color:var(--gold2);font-family:"Cormorant Garamond";font-size:26px}
+footer{padding:44px 0;text-align:center;color:var(--mut);font-size:13px;position:relative;z-index:1;border-top:1px solid var(--line)}
+.rv{opacity:0;transform:translateY(30px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
+.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv,.rise>*{opacity:1!important;transform:none!important}}
+@media (max-width:900px){header nav{display:none}.prog,.spk{grid-template-columns:1fr 1fr}.tix,.rev{grid-template-columns:1fr}.tk.hot{transform:none}.cd div{min-width:68px}.cd b{font-size:34px}.reg{padding:28px 20px}section{padding:76px 0}}
+@media (max-width:520px){.prog{grid-template-columns:1fr}.av{width:120px;height:120px}}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<header id="hd"><div class="wrap hd"><a class="logo" href="#"><i></i>ЛУННЫЙ КРУГ</a><nav><a href="#program">Программа</a><a href="#speakers">Спикеры</a><a href="#tickets">Участие</a><a href="#faq">Вопросы</a></nav><a class="btn" href="#reg" style="padding:11px 20px;font-size:13px">Регистрация</a></div></header>
+
+<div class="hero">
+ <div class="wheel"><svg viewBox="0 0 400 400" fill="none" stroke="#d9b46a" stroke-width=".6" id="wh"></svg></div>
+ <div class="wrap rise">
+  <div class="moon"></div>
+  <div class="date"><b>21-24 декабря</b> · онлайн · зимнее солнцестояние</div>
+  <h1>Лунный <em>круг</em></h1>
+  <p class="sub">Четыре дня практик, лекций и медитаций с проводниками из разных традиций. Смотрите из дома, записи остаются с вами.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap"><a class="btn f" href="#reg">Занять место</a><a class="btn" href="#program">Программа</a></div>
+  <div class="cd" id="cd"><div><b id="dd">00</b><span>дней</span></div><div><b id="hh">00</b><span>часов</span></div><div><b id="mm">00</b><span>минут</span></div><div><b id="ss">00</b><span>секунд</span></div></div>
+ </div>
+</div>
+
+<section id="program"><div class="wrap">
+ <div class="sh rv"><span class="ey">Программа</span><h2>Четыре дня - четыре фазы</h2><p>Каждый день фестиваля - отдельная тема. Эфиры в 19:00 по Москве, записи открыты 30 дней.</p></div>
+ <div class="prog">
+  <div class="day d1 rv"><div class="ph"></div><span class="ey">День 1 · 21.12</span><h3>Намерение</h3><ul><li><b>19:00</b> Открытие круга</li><li><b>19:40</b> Лекция: календарь и циклы</li><li><b>20:30</b> Медитация на год</li></ul></div>
+  <div class="day d2 rv"><div class="ph"></div><span class="ey">День 2 · 22.12</span><h3>Тело</h3><ul><li><b>19:00</b> Дыхательные практики</li><li><b>19:50</b> Звук и чаши</li><li><b>20:40</b> Разбор вопросов</li></ul></div>
+  <div class="day d3 rv"><div class="ph"></div><span class="ey">День 3 · 23.12</span><h3>Знаки</h3><ul><li><b>19:00</b> Астрология года</li><li><b>19:50</b> Таро: практикум</li><li><b>20:40</b> Нумерология</li></ul></div>
+  <div class="day d4 rv"><div class="ph"></div><span class="ey">День 4 · 24.12</span><h3>Полнота</h3><ul><li><b>19:00</b> Ритуал завершения</li><li><b>19:50</b> Общая медитация</li><li><b>20:30</b> Подарки участникам</li></ul></div>
+ </div>
+</div></section>
+
+<section id="speakers"><div class="wrap">
+ <div class="sh rv"><span class="ey">Проводники</span><h2>Спикеры фестиваля</h2></div>
+ <div class="spk" id="spk"></div>
+</div></section>
+
+<section id="tickets"><div class="wrap">
+ <div class="sh rv"><span class="ey">Участие</span><h2>Выберите формат</h2><p>Цена растёт ближе к старту - ранняя регистрация выгоднее.</p></div>
+ <div class="tix">
+  <div class="tk rv"><h3>Гость</h3><div class="pr">0 ₽</div><ul><li>Открытие и закрытие в эфире</li><li>Общий чат участников</li></ul><a class="btn" href="#reg">Зарегистрироваться</a></div>
+  <div class="tk hot rv"><span class="tag">Выбор участников</span><h3>Участник</h3><div class="pr">2 900 ₽<s>4 500</s></div><ul><li>Все 12 эфиров</li><li>Записи на 30 дней</li><li>Рабочая тетрадь фестиваля</li></ul><a class="btn f" href="#reg">Занять место</a></div>
+  <div class="tk rv"><h3>Круг</h3><div class="pr">6 900 ₽</div><ul><li>Всё из тарифа «Участник»</li><li>Личная консультация 30 минут</li><li>Записи навсегда</li></ul><a class="btn" href="#reg">Выбрать</a></div>
+ </div>
+</div></section>
+
+<section><div class="wrap">
+ <div class="sh rv"><span class="ey">Отзывы</span><h2>Что говорят участники</h2></div>
+ <div class="rev"><div class="rv-c rv"><p>«Первый онлайн-формат, где я действительно была внутри процесса, а не просто смотрела эфир».</p><span>Отзыв-пример · Анна</span></div><div class="rv-c rv"><p>«Записи пересматривала весь январь. Тетрадь фестиваля - отдельная радость».</p><span>Отзыв-пример · Марина</span></div><div class="rv-c rv"><p>«Спокойно, бережно и без лишнего пафоса. Приду снова».</p><span>Отзыв-пример · Ольга</span></div></div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+ <div class="sh rv"><span class="ey">Вопросы</span><h2>Частые вопросы</h2></div>
+ <div class="faq rv">
+  <details open><summary>Где проходят эфиры?</summary><p>На платформе фестиваля, ссылка придёт на почту и в Telegram после регистрации.</p></details>
+  <details><summary>Можно ли смотреть в записи?</summary><p>Да, записи всех эфиров доступны 30 дней, в тарифе «Круг» - навсегда.</p></details>
+  <details><summary>Как оплатить?</summary><p>Картой на сайте, чек придёт на почту. Возврат - до начала фестиваля.</p></details>
+ </div>
+</div></section>
+
+<section id="reg"><div class="wrap">
+ <div class="reg rv"><span class="ey">Регистрация</span><h2 style="font-size:clamp(36px,4.6vw,56px);margin-top:10px">Займите место в круге</h2>
+  <form onsubmit="event.preventDefault();this.querySelector('.ok').style.display='block'">
+   <input required placeholder="Имя"><input required type="email" placeholder="E-mail"><input placeholder="Telegram (необязательно)">
+   <select><option>Тариф «Участник» - 2 900 ₽</option><option>Тариф «Гость» - бесплатно</option><option>Тариф «Круг» - 6 900 ₽</option></select>
+   <button class="btn f" style="justify-content:center">Зарегистрироваться</button>
+   <p class="ok">Вы в круге. Письмо с доступом уже летит к вам.</p>
+  </form>
+ </div>
+</div></section>
+<footer>Демо-лендинг: название, даты, спикеры и цены условные, меняются под ваш фестиваль</footer>
+
+<script>
+/* starfield */
+const c=document.getElementById('sky'),x=c.getContext('2d');let W,H,S=[];
+function rs(){W=c.width=innerWidth*devicePixelRatio;H=c.height=innerHeight*devicePixelRatio;S=Array.from({length:Math.round(W*H/9000)},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.3*devicePixelRatio+.2,p:Math.random()*6.28,s:.4+Math.random()*1.4}))}
+rs();addEventListener('resize',rs);
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function f(t){x.clearRect(0,0,W,H);const off=scrollY*.15*devicePixelRatio;for(const s of S){const a=.35+.45*Math.sin(s.p+t/1000*s.s);x.globalAlpha=a;x.fillStyle='#f1dcae';x.beginPath();x.arc(s.x,(s.y-off%H+H)%H,s.r,0,6.28);x.fill()}if(!rm)requestAnimationFrame(f)})(0);
+/* zodiac wheel: rings, 12 sectors, constellation dots */
+let g='<circle cx="200" cy="200" r="196"/><circle cx="200" cy="200" r="170"/><circle cx="200" cy="200" r="120" stroke-dasharray="2 6"/><circle cx="200" cy="200" r="60"/>';
+for(let i=0;i<12;i++){const a=i*Math.PI/6,c1=Math.cos(a),s1=Math.sin(a);g+=`<path d="M${200+170*c1} ${200+170*s1}L${200+196*c1} ${200+196*s1}"/>`;
+ const b=a+Math.PI/12;let pts=[];for(let k=0;k<4;k++){const rr=128+((i*7+k*13)%30),aa=b+(k-1.5)*.07;pts.push([200+rr*Math.cos(aa),200+rr*Math.sin(aa)])}
+ g+=`<path d="M${pts.map(p=>p.join(' ')).join('L')}" stroke-opacity=".7"/>`+pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="#d9b46a" stroke="none"/>`).join('');
+ for(let k=0;k<6;k++){const aa=a+k*Math.PI/36;g+=`<path d="M${200+170*Math.cos(aa)} ${200+170*Math.sin(aa)}L${200+178*Math.cos(aa)} ${200+178*Math.sin(aa)}" stroke-opacity=".6"/>`}}
+document.getElementById('wh').innerHTML=g;
+/* countdown */
+const T=new Date('2026-12-21T19:00:00+03:00');const z=n=>String(n).padStart(2,'0');
+function tick(){let d=Math.max(0,T-Date.now())/1000;dd.textContent=z(Math.floor(d/86400));hh.textContent=z(Math.floor(d%86400/3600));mm.textContent=z(Math.floor(d%3600/60));ss.textContent=z(Math.floor(d%60))}tick();setInterval(tick,1000);
+/* speakers */
+const sp=[['Вера Ланская','Астролог, 12 лет практики','M32 8a24 24 0 1 0 0 48a18 18 0 1 1 0-48z'],['Ильяс Тимуров','Мастер звука и дыхания','M10 32h8l6-14 8 28 8-20 6 6h8'],['Алина Норд','Таро и архетипы','M20 8h24v48H20zM32 20l6 12-6 12-6-12z'],['Марк Соло','Медитация и тишина','M32 12a20 20 0 1 0 .1 0M32 26a6 6 0 1 0 .1 0']];
+document.getElementById('spk').innerHTML=sp.map(([n,r,d])=>`<div class="sp rv"><div class="av"><svg viewBox="0 0 64 64" fill="none" stroke="#d9b46a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg></div><h3>${n}</h3><p>${r}</p></div>`).join('');
+/* reveal, header */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.rv').forEach(e=>io.observe(e));
+addEventListener('load',()=>document.body.classList.add('loaded'));setTimeout(()=>document.body.classList.add('loaded'),1200);
+const hd=document.getElementById('hd');addEventListener('scroll',()=>hd.classList.toggle('s',scrollY>60),{passive:true});
+</script>
+</body>
+</html>
